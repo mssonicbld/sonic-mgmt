@@ -514,6 +514,12 @@ Validates load-balancing when sub-port is part of ECMP
 - apply_config_on_the_ptf fixture(scope="function"): enable and configures sub-port interfaces on the PTF
 - apply_balancing_config fixture(scope="function"): setup balancing configuration on the DUT
 
+On non-backend topologies, select the ingress from currently active IPv4 routed
+interfaces, expanding routed PortChannels to their physical members and excluding
+the sub-port parents. Do not select a port solely because it exists in the
+minigraph: preceding routing tests can remove its ingress RIF. Backend topologies
+continue to use their VLAN-tagged uplink sub-interfaces.
+
 Example the customized testbed with applied T0 topo for test_balancing_sub_ports test case:
 ```
               VM    VM    VM    VM

@@ -519,10 +519,20 @@ def apply_balancing_config(duthost, ptfhost, ptfadapter, define_sub_ports_config
                           + constants.VLAN_SUB_INTERFACE_SEPARATOR + str(vlan_id))
         src_ports = tuple(src_ports)
     else:
-        mg_facts = duthost.get_extended_minigraph_facts(tbinfo)
         all_up_ports = set()
-        for port in list(mg_facts['minigraph_ports'].keys()):
-            all_up_ports.add("eth" + str(mg_facts['minigraph_ptf_indices'][port]))
+        ip_interfaces = duthost.show_ip_interface()['ansible_facts']['ip_interfaces']
+        # Earlier routing tests can remove an ingress RIF without changing the minigraph.
+        for interface, ip_config in ip_interfaces.items():
+            if ip_config['admin'] != 'up' or ip_config['oper_state'] != 'up':
+                continue
+            if interface in mg_facts['minigraph_portchannels']:
+                ports = mg_facts['minigraph_portchannels'][interface]['members']
+            elif interface in mg_facts['minigraph_ports']:
+                ports = [interface]
+            else:
+                continue
+            for port in ports:
+                all_up_ports.add("eth" + str(mg_facts['minigraph_ptf_indices'][port]))
 
         # Handle both list and dict ptf_ports
         ports_to_exclude = set()
@@ -532,6 +542,7 @@ def apply_balancing_config(duthost, ptfhost, ptfadapter, define_sub_ports_config
             ports_to_exclude = set(ptf_ports)
 
         src_ports = tuple(all_up_ports.difference(ports_to_exclude))
+        py_assert(src_ports, "No active routed ingress ports available for sub-port balancing")
 
     network = '1.1.1.0/24'
     network = ipaddress.ip_network(network)
