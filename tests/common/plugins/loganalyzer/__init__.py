@@ -193,6 +193,17 @@ def ignore_pkt_trim_errors(duthosts, loganalyzer):
 
 
 @pytest.fixture(autouse=True)
+def ignore_management_nic_reset_on_vs(duthosts, loganalyzer):
+    """Ignore emulated management-NIC resets on VS platforms."""
+    if loganalyzer:
+        for duthost in duthosts:
+            if duthost.facts.get("asic_type") == "vs":
+                loganalyzer[duthost.hostname].ignore_regex.append(
+                    r".*ERR kernel:.* e1000 \S+ eth0: Reset adapter\s*$"
+                )
+
+
+@pytest.fixture(autouse=True)
 def ignore_port_phy_attr_errors_on_vs(duthosts, loganalyzer):
     """Ignore PORT_PHY_ATTR ERR on VS/KVM platforms.
 
