@@ -31,6 +31,8 @@ def macsec_loganalyzer_ignore(loganalyzer, macsec_duthost):
       this while MKA re-negotiates after the macsec container is killed.
     - 'KaY: Reject distributed SAK since I'm a key server': the forced DUT key
       server rejects a peer's transient SAK distribution during re-election.
+    - 'KaY: Could not determine max SAs per SC': an initial wpa_supplicant
+      attempt can race MACsec STATE_DB recovery before a later attempt converges.
     - 'e1000 ... Reset adapter': KVM virtual NIC resets when the macsec
       container is SIGKILL'd; this is a VTB environment artifact.
     """
@@ -40,6 +42,8 @@ def macsec_loganalyzer_ignore(loganalyzer, macsec_duthost):
             r".*macsec\d*#wpa_supplicant.*KaY: The key server is not in my live peers list.*",
             r".*macsec\d*#wpa_supplicant.*KaY: "
             r"Reject distributed SAK since I'm a key server.*",
+            r".*macsec\d*#wpa_supplicant.*KaY: "
+            r"Could not determine max SAs per SC.*",
             r".*kernel:.*e1000.*Reset adapter.*",
         ])
 
